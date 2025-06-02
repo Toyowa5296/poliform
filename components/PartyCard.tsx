@@ -17,21 +17,23 @@ type Party = {
   slogan: string | null
   ideology: string
   user_id: string
-  logo_url?: string
+  logo_url?: string | null
   user_name?: string
-  leader_name?: string
-  activity_area?: string
-  founded_at?: string
+  leader_name?: string | null
+  activity_area?: string | null
+  founded_at?: string | null
 }
 
 type Props = {
   party: Party
   tags?: Tag[]
+  className?: string
   onTagClick?: (tagName: string) => void
   onEdit?: (party: Party) => void
   onDelete?: (id: string) => void
   pendingCount?: number
   onClickApplicants?: (partyId: string) => void
+  showSupportButton?: boolean
 }
 
 export default function PartyCard({

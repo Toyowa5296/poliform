@@ -22,7 +22,7 @@ export default function PartyCreatePage() {
   const [loading, setLoading] = useState(false)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
-  const [availableTags, setAvailableTags] = useState<{ id: string; name: string }[]>([])
+  const [availableTags, setAvailableTags] = useState<{ id: string; name: string; category?: string }[]>([])
   const [activities, setActivities] = useState('')
   const [activitiesUrl, setActivitiesUrl] = useState('')
   const [expandedCategories, setExpandedCategories] = useState<string[]>([])
@@ -129,6 +129,12 @@ export default function PartyCreatePage() {
     // チェック
     if (fetchRoleError || !insertedRole) {
       setError(fetchRoleError?.message || '代表ロールの取得に失敗しました')
+      setLoading(false)
+      return
+    }
+
+    if (!user) {
+      setError('ユーザー情報が取得できませんでした')
       setLoading(false)
       return
     }

@@ -30,7 +30,7 @@ export default function Header() {
 
       const user = session.user
       console.log('[Header] user retrieved:', user.id, user.email)
-      setUserEmail(user.email)
+      setUserEmail(user.email ?? null)
 
       const { data: profile, error: profileError } = await supabase
         .from('user_profile')

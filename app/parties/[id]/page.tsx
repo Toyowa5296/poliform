@@ -79,7 +79,18 @@ export default function PartyDetailPage() {
         `)
         .eq('id', id)
         .single()
-      if (data) setParty(data)
+      if (data) {
+        const { party_tag, ...rest } = data
+        const normalized = {
+          ...rest,
+          tags: party_tag
+            ?.flatMap((pt: any) =>
+              Array.isArray(pt.tag) ? pt.tag : [pt.tag]
+            )
+            .filter((tag): tag is Tag => !!tag?.id && !!tag?.name),
+        }
+        setParty(normalized)
+      }
     }
     if (id) fetchParty()
   }, [id])
@@ -101,7 +112,17 @@ export default function PartyDetailPage() {
       .select('id, content, created_at, user_id, user_profile(id, name)')
       .eq('party_id', id)
       .order('created_at', { ascending: false })
-    if (data) setComments(data)
+
+    if (data) {
+      setComments(
+        data.map((comment: any) => ({
+          ...comment,
+          user_profile: Array.isArray(comment.user_profile)
+            ? comment.user_profile[0] // 配列なら1件目だけを使用
+            : comment.user_profile,
+        }))
+      )
+    }
   }
 
   useEffect(() => {
@@ -175,8 +196,8 @@ export default function PartyDetailPage() {
       type MemberProfile = { id: string; name: string; avatar_url?: string }
 
       const filtered = (data ?? [])
-        .map((d) => d.user_profile)
-        .filter((u): u is MemberProfile => !!u)
+        .map((d) => Array.isArray(d.user_profile) ? d.user_profile[0] : d.user_profile)
+        .filter(Boolean)
 
       setMembers(filtered)
     }
@@ -211,7 +232,11 @@ export default function PartyDetailPage() {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) return
+
+    if (!user) {
+      console.error('ユーザー情報が取得できませんでした')
+      return
+    }
 
     const { data: existing, error } = await supabase
       .from('party_member')
@@ -230,10 +255,7 @@ export default function PartyDetailPage() {
       setMemberStatus('pending')
       return
     }
-
-    console.log('user_id:', user?.id)
-    console.log('party_id:', id)
-
+    
      // 新規申請を登録
     const { error: insertError } = await supabase.from('party_member').insert({
       user_id: user.id,
@@ -469,10 +491,12 @@ export default function PartyDetailPage() {
       </div>
 
         {/* タグ */}
-        {party.party_tag?.length > 0 && (
+        {Array.isArray(party.party_tag) && party.party_tag.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {party.party_tag.map(({ tag }) => (
-              <span key={tag.id} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">#{tag.name}</span>
+              <span key={tag.id} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
+                #{tag.name}
+              </span>
             ))}
           </div>
         )}

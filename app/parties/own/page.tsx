@@ -22,6 +22,8 @@ type Party = {
   logo_url?: string | null
   user_id: string
   tags?: Tag[]
+  activities?: string | null
+  activities_url?: string | null 
 }
 type UserProfile = {
   id: string
@@ -46,12 +48,25 @@ type PartyMember = {
   status: string;
 };
 
+type FormProfile = {
+  name: string
+  bio: string
+  avatar_url?: string
+  birthplace?: string
+  x_url?: string
+  website_url?: string
+  birthday?: string
+  is_public?: boolean
+  interests?: string[]
+}
+
+type Like = { party: Party | null }
+
 export default function MyPage() {
   const [ownParties, setOwnParties] = useState<Party[]>([])
   const [likedParties, setLikedParties] = useState<Party[]>([])
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [editingProfile, setEditingProfile] = useState(false)
-  const [formProfile, setFormProfile] = useState({ name: '', bio: '', avatar_url: userProfile?.avatar_url || '', })
   const [error, setError] = useState<string | null>(null)
 
   const [editingPartyId, setEditingPartyId] = useState<string | null>(null)
@@ -92,6 +107,18 @@ export default function MyPage() {
       setPolicyPillars((prev) => ({ ...prev, [partyId]: data }))
     }
   }
+
+  const [formProfile, setFormProfile] = useState<FormProfile>({
+    name: '',
+    bio: '',
+    avatar_url: '',
+    birthplace: '',
+    x_url: '',
+    website_url: '',
+    birthday: '',
+    is_public: true,
+    interests: [],
+  })
 
   const [confirmAction, setConfirmAction] = useState<{
     type: 'approve' | 'reject';
@@ -164,18 +191,23 @@ export default function MyPage() {
       // ✅ その後に tagMap を作る
       const tagMap: { [partyId: string]: string[] } = {}
       ownWithTags.forEach(p => {
-        tagMap[p.id] = p.tags?.map(t => t.id) || []
+        tagMap[p.id] = p.tags?.map((t: Tag) => t.id) || []
       })
       setSelectedTagMap(tagMap)
 
       for (const p of ownWithTags) fetchPolicyPillars(p.id)
 
-      const { data: likes } = await supabase
+      const { data: likesRaw } = await supabase
         .from('likes')
-        .select('party (id, name, slogan, ideology, user_id)')
+        .select('party(*)')
         .eq('user_id', user.id)
 
-      const liked = (likes || []).map((item) => item.party).filter((p): p is Party => p !== null)
+      const likes = (likesRaw ?? []) as unknown as Like[]
+
+      const liked = likes
+        .map((item) => item.party)
+        .filter((p): p is Party => p !== null)
+
       setLikedParties(liked)
 
       const { data: membersData, error: membersError } = await supabase
@@ -188,12 +220,14 @@ export default function MyPage() {
       }
 
       if (membersData) {
-        const membersMap: { [partyId: string]: { status: string }[] } = {}
+        const membersMap: { [partyId: string]: PartyMember[] } = {}
         for (const m of membersData) {
-          console.log('member row:', m)
           if (!m.party_id || !m.status) continue
           if (!membersMap[m.party_id]) membersMap[m.party_id] = []
-          membersMap[m.party_id].push({ status: m.status })
+          membersMap[m.party_id].push({
+            party_id: m.party_id,
+            status: m.status,
+          })
         }
         setPartyMembers(membersMap)
       }
@@ -282,7 +316,7 @@ export default function MyPage() {
 
     const { data, error } = await supabase
       .from('party_member')
-      .select('status, user_profile: user_id (id, name, avatar_url, bio)')
+      .select('status, user_profile: user_id (id, name, avatar_url, bio, email)')
       .eq('party_id', partyId)
       .in('status', ['pending'])
 
@@ -296,7 +330,9 @@ export default function MyPage() {
     }
 
     if (data) {
-      const profiles = data.map((entry) => entry.user_profile)
+      const profiles = data.map((entry) =>
+        Array.isArray(entry.user_profile) ? entry.user_profile[0] : entry.user_profile
+      )
       setApplicants(profiles)
     }
   }

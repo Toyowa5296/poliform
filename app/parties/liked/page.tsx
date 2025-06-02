@@ -13,13 +13,13 @@ type Party = {
   name: string
   slogan: string | null
   ideology: string
-  leader_name?: string | null
-  founded_at?: string | null
-  activity_area?: string | null
-  location?: string | null
-  website?: string | null
-  contact_email?: string | null
-  logo_url?: string | null
+  leader_name: string | null
+  founded_at: string | null
+  activity_area: string | null
+  location: string | null
+  website: string | null
+  contact_email: string | null
+  logo_url: string | null
   user_id: string
   tags?: Tag[]
 }
@@ -46,12 +46,50 @@ type PartyMember = {
   status: string;
 };
 
+type FormProfile = {
+  name: string
+  bio: string
+  avatar_url?: string
+  birthplace?: string
+  x_url?: string
+  website_url?: string
+  birthday?: string
+  is_public?: boolean
+  interests?: string[]
+}
+
+type RawParty = {
+  id: string
+  name: string
+  slogan: string | null
+  ideology: string
+  leader_name?: string | null
+  founded_at?: string | null
+  activity_area?: string | null
+  location?: string | null
+  website?: string | null
+  contact_email?: string | null
+  logo_url?: string | null
+  user_id: string
+  party_tag?: { tag: Tag }[]
+}
+
 export default function MyPage() {
   const [ownParties, setOwnParties] = useState<Party[]>([])
   const [likedParties, setLikedParties] = useState<Party[]>([])
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [editingProfile, setEditingProfile] = useState(false)
-  const [formProfile, setFormProfile] = useState({ name: '', bio: '', avatar_url: userProfile?.avatar_url || '', })
+  const [formProfile, setFormProfile] = useState<FormProfile>({
+    name: '',
+    bio: '',
+    avatar_url: '',
+    birthplace: '',
+    x_url: '',
+    website_url: '',
+    birthday: '',
+    is_public: true,
+    interests: [],
+  })
   const [error, setError] = useState<string | null>(null)
 
   const [policyPillars, setPolicyPillars] = useState<{ [partyId: string]: PolicyPillar[] }>({})
@@ -135,7 +173,7 @@ export default function MyPage() {
       // ✅ その後に tagMap を作る
       const tagMap: { [partyId: string]: string[] } = {}
       ownWithTags.forEach(p => {
-        tagMap[p.id] = p.tags?.map(t => t.id) || []
+        tagMap[p.id] = p.tags?.map((t: { id: string; name: string }) => t.id) || []
       })
       setSelectedTagMap(tagMap)
 
@@ -164,14 +202,28 @@ export default function MyPage() {
 
       const likedWithTags = (likes || [])
         .map((item) => {
-          const party = item.party
-          if (!party) return null
+          const raw = item.party as unknown as RawParty
+          if (!raw) return null
+
+          const tags = raw.party_tag?.map((pt) => pt.tag) ?? []
+
           return {
-            ...party,
-            tags: party.party_tag?.map((pt: any) => pt.tag) || [],
+            id: raw.id,
+            name: raw.name,
+            slogan: raw.slogan,
+            ideology: raw.ideology,
+            leader_name: raw.leader_name,
+            founded_at: raw.founded_at,
+            activity_area: raw.activity_area,
+            location: raw.location,
+            website: raw.website,
+            contact_email: raw.contact_email,
+            logo_url: raw.logo_url,
+            user_id: raw.user_id,
+            tags: tags,
           }
         })
-        .filter((p): p is Party => p !== null)
+      .filter((p): p is Party & { tags: Tag[] } => p !== null && p.tags !== undefined)
 
       setLikedParties(likedWithTags)
       setLoading(false)
@@ -186,12 +238,15 @@ export default function MyPage() {
       }
 
       if (membersData) {
-        const membersMap: { [partyId: string]: { status: string }[] } = {}
+        const membersMap: { [partyId: string]: PartyMember[] } = {} // 修正後の型
         for (const m of membersData) {
           console.log('member row:', m)
           if (!m.party_id || !m.status) continue
           if (!membersMap[m.party_id]) membersMap[m.party_id] = []
-          membersMap[m.party_id].push({ status: m.status })
+          membersMap[m.party_id].push({
+            party_id: m.party_id,
+            status: m.status,
+          }) // PartyMember型に一致させる
         }
         setPartyMembers(membersMap)
       }
