@@ -25,7 +25,7 @@ export default function PartyCreatePage() {
   const [availableTags, setAvailableTags] = useState<{ id: string; name: string; category?: string }[]>([])
   const [activities, setActivities] = useState('')
   const [activitiesUrl, setActivitiesUrl] = useState('')
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([])
+  const [, setExpandedCategories] = useState<string[]>([])
 
   // 取得後にカテゴリごとにグループ化
   useEffect(() => {
@@ -116,6 +116,11 @@ export default function PartyCreatePage() {
         description: '閲覧・コメントのみ可能',
       },
     ]);
+
+    // エラーが発生した場合にログを出力する
+    if (roleInsertError) {
+      console.error('パーティロールの挿入エラー:', roleInsertError.message);
+    }
 
     // 代表ロールのIDを取得
     // 👇 ここで insertedRole を取得して定義する（.maybeSingle() 推奨）
