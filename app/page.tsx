@@ -160,11 +160,6 @@ export default function Page() {
     fetchData()
   }, [selectedTags, userId])
 
-  // 検索ボタンクリック時の処理 (現在はsetSelectedTags([])のみだが、将来的に拡張可能)
-  const handleSearch = () => {
-    setSelectedTags([])
-  }
-
   // タグの選択/解除を切り替える
   const toggleTag = (tagName: string) => {
     setKeyword('') // タグを選択したらキーワード検索をリセット
