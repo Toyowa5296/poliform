@@ -7,6 +7,9 @@ import { supabase } from '../../lib/supabase'
 
 // 型定義
 type Tag = { id: string; name: string }
+type PartyTagEntry = { 
+  tag: Tag[]; 
+}
 type Party = {
   id: string
   name: string
@@ -20,7 +23,8 @@ type Party = {
   contact_email?: string | null
   logo_url?: string | null
   user_id: string
-  party_tag?: { tag: Tag }[]  
+  party_tag?: PartyTagEntry[]
+  tags?: Tag[];
 }
 type UserProfile = {
   id: string
@@ -81,7 +85,7 @@ export default function MyPage() {
   const [, setError] = useState<string | null>(null)
 
   const [editingPartyId, setEditingPartyId] = useState<string | null>(null)
-  const [form, _setForm] = useState({
+  const [form, ] = useState({
     name: '',
     slogan: '',
     ideology: '',
@@ -169,7 +173,7 @@ export default function MyPage() {
           activities,
           activities_url,
           party_tag (
-          tag! (
+          tag (
             id,
             name
           )
@@ -182,9 +186,9 @@ export default function MyPage() {
       if (tagsData) setAvailableTags(tagsData)
 
       // ✅ 先に ownWithTags を定義
-      const ownWithTags = (own || []).map((p: any) => ({
+      const ownWithTags = (own || []).map((p: Party) => ({
         ...p,
-        tags: p.party_tag?.map((pt: any) => pt.tag) || [],
+        tags: p.party_tag?.flatMap(ptEntry => ptEntry.tag) || [],
       }))
       setOwnParties(ownWithTags)
 
@@ -639,8 +643,6 @@ export default function MyPage() {
           </div>
         </div>
       )}
-
-
 
     </div>
   )
