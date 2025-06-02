@@ -62,8 +62,8 @@ type Like = {
 }
 
 export default function MyPage() {
-  const [ownParties, setOwnParties] = useState<Party[]>([])
-  const [likedParties, setLikedParties] = useState<Party[]>([])
+  const [_ownParties, setOwnParties] = useState<Party[]>([])
+  const [_likedParties, setLikedParties] = useState<Party[]>([])
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [editingProfile, setEditingProfile] = useState(false)
   const [formProfile, setFormProfile] = useState<FormProfile>({
@@ -78,10 +78,10 @@ export default function MyPage() {
     interests: [],
   })
   
-  const [error, setError] = useState<string | null>(null)
+  const [_error, setError] = useState<string | null>(null)
 
   const [editingPartyId, setEditingPartyId] = useState<string | null>(null)
-  const [form, setForm] = useState({
+  const [form, _setForm] = useState({
     name: '',
     slogan: '',
     ideology: '',
@@ -95,19 +95,17 @@ export default function MyPage() {
     activities: '',
     activities_url: '',
   })
-  const [policyPillars, setPolicyPillars] = useState<{ [partyId: string]: PolicyPillar[] }>({})
+  const [_policyPillars, setPolicyPillars] = useState<{ [partyId: string]: PolicyPillar[] }>({})
   const [newPillar, setNewPillar] = useState<{ [partyId: string]: string }>({})
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editContent, setEditContent] = useState<string>('')
+  const [editingId, _setEditingId] = useState<string | null>(null)
 
   const [availableTags, setAvailableTags] = useState<{ id: string; name: string; category?: string | null }[]>([])
   const [selectedTagMap, setSelectedTagMap] = useState<{ [partyId: string]: string[] }>({})
-  const [showTags, setShowTags] = useState<boolean>(false)
-  const [partyMembers, setPartyMembers] = useState<{ [partyId: string]: PartyMember[] }>({})
+  const [_partyMembers, setPartyMembers] = useState<{ [partyId: string]: PartyMember[] }>({})
 
-  const [applicants, setApplicants] = useState<UserProfile[]>([])
+  const [_applicants, setApplicants] = useState<UserProfile[]>([])
   const [selectedPartyId, setSelectedPartyId] = useState<string | null>(null)
-  const [showModal, setShowModal] = useState(false)
+  const [_showModal, setShowModal] = useState(false)
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
@@ -118,7 +116,7 @@ export default function MyPage() {
     }
   }
 
-  const [confirmAction, setConfirmAction] = useState<{
+  const [_confirmAction, _setConfirmAction] = useState<{
     type: 'approve' | 'reject';
     userId: string;
   } | null>(null);
