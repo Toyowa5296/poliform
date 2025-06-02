@@ -25,7 +25,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           }
         }
       } catch (e) {
-        console.warn('ログイン状態でないため、user_profile同期をスキップ')
+        console.warn('ログイン状態でないため、user_profile同期をスキップ', e)
       }
     }
 

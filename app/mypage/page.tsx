@@ -4,7 +4,6 @@
 import React from 'react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import PartyCard from '../../components/PartyCard'
 
 // 型定義
 type Tag = { id: string; name: string }
@@ -172,11 +171,11 @@ export default function MyPage() {
           activities,
           activities_url,
           party_tag (
-            tag! (
-              id,
-              name
-            )
+          tag! (
+            id,
+            name
           )
+        )
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
