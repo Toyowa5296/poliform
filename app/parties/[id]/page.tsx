@@ -55,11 +55,6 @@ type Comment = {
   user_profile?: { id: string; name: string } | null
 }
 
-// Supabaseから取得する生のPartyMemberデータ型（join前）
-type RawPartyMemberSupabaseData = {
-  user_profile: { id: string; name: string; avatar_url?: string | null } | Array<{ id: string; name: string; avatar_url?: string | null }> | null;
-}
-
 // コンポーネント内で使用するMemberデータ型（正規化後）
 type Member = {
   id: string;
