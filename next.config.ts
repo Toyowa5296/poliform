@@ -1,11 +1,13 @@
+// next.config.js
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   eslint: {
-    ignoreDuringBuilds: true, // ← これが必須
+    ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true,  // ← any や型エラー回避（必要なら）
+    ignoreBuildErrors: true, // ←型エラーも無視したいなら
   },
 }
 
