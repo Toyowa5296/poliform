@@ -4,7 +4,7 @@
 import Link from 'next/link'
 import { User, MapPin, CalendarDays } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../lib/supabase'
 
 type Tag = {
   id: string

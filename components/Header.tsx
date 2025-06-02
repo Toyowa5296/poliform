@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useSessionContext } from '@supabase/auth-helpers-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../lib/supabase'
 import Link from 'next/link'
-import { logError } from '@/utils/logError'
+import { logError } from '../utils/logError'
 import { usePathname } from 'next/navigation'
 
 export default function Header() {

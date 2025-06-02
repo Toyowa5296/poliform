@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../../../lib/supabase'
 import { User, MapPin, CalendarDays, Globe, Mail } from 'lucide-react'
 
 // 型を拡張

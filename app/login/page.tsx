@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../../lib/supabase'
 import { useRouter } from 'next/navigation'
-import { logError } from '@/utils/logError'
+import { logError } from '../../utils/logError'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -23,11 +23,16 @@ export default function LoginPage() {
     checkLogin()
   }, [router])
 
+  const redirectTo =
+    process.env.NODE_ENV === 'development'
+      ? 'http://localhost:3000'
+      : 'https://poliform.vercel.app'
+
   const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'http://localhost:3000',
+        redirectTo: redirectTo
       },
     })
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { logError } from '@/utils/logError'
+import { logError } from '../utils/logError'
 
 export default function TestLogButton() {
   const handleTestLog = async () => {

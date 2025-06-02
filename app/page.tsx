@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import PartyCard from '@/components/PartyCard'
+import { supabase } from '../lib/supabase'
+import PartyCard from '../components/PartyCard'
 
 // 型定義
 type Tag = { id: string; name: string }
