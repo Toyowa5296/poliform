@@ -75,11 +75,10 @@ type RawParty = {
 }
 
 export default function MyPage() {
-  const [ownParties, setOwnParties] = useState<Party[]>([])
+  const [, setOwnParties] = useState<Party[]>([])
   const [likedParties, setLikedParties] = useState<Party[]>([])
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
-  const [editingProfile, setEditingProfile] = useState(false)
-  const [formProfile, setFormProfile] = useState<FormProfile>({
+  const [, setUserProfile] = useState<UserProfile | null>(null)
+  const [, setFormProfile] = useState<FormProfile>({
     name: '',
     bio: '',
     avatar_url: '',
@@ -92,12 +91,11 @@ export default function MyPage() {
   })
   const [error, setError] = useState<string | null>(null)
 
-  const [policyPillars, setPolicyPillars] = useState<{ [partyId: string]: PolicyPillar[] }>({})
+  const [, setPolicyPillars] = useState<{ [partyId: string]: PolicyPillar[] }>({})
 
-  const [availableTags, setAvailableTags] = useState<{ id: string; name: string; category?: string | null }[]>([])
-  const [selectedTagMap, setSelectedTagMap] = useState<{ [partyId: string]: string[] }>({})
-  const [showTags, setShowTags] = useState<boolean>(false)
-  const [partyMembers, setPartyMembers] = useState<{ [partyId: string]: PartyMember[] }>({})
+  const [, setAvailableTags] = useState<{ id: string; name: string; category?: string | null }[]>([])
+  const [, setSelectedTagMap] = useState<{ [partyId: string]: string[] }>({})
+  const [, setPartyMembers] = useState<{ [partyId: string]: PartyMember[] }>({})
 
   const [loading, setLoading] = useState(true)
 
