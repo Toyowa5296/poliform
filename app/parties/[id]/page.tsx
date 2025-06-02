@@ -1,19 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { supabase } from '../../../lib/supabase'
-import { User, MapPin, CalendarDays, Globe, Mail } from 'lucide-react'
+import { useParams } from 'next/navigation' // Next.jsのルーティングからパラメータを取得
+import { supabase } from '../../../lib/supabase' // Supabaseクライアントのインポート
+import { User, MapPin, CalendarDays, Globe, Mail } from 'lucide-react' // アイコンライブラリ
 
-// 型を拡張
+// タグの型定義
 type Tag = { id: string; name: string }
 
-type Party = {
+// Supabaseから取得する生のPartyデータ型（join前）
+type RawPartySupabaseData = {
   user_id: string
   name: string
   slogan: string | null
   ideology: string
-  logo_url?: string
+  logo_url?: string | null
   founded_at?: string | null
   leader_name?: string | null
   activity_area?: string | null
@@ -22,46 +23,74 @@ type Party = {
   contact_email?: string | null
   activities?: string | null
   activities_url?: string | null
-  party_tag?: { tag: Tag }[]
+  party_tag?: { tag: Tag }[] // Supabaseの結合されたデータ
 }
 
+// コンポーネント内で使用するPartyデータ型（正規化後）
+type Party = Omit<RawPartySupabaseData, 'party_tag'> & {
+  tags?: Tag[] // 正規化されたタグ
+}
+
+// 政策の柱の型定義
 type PolicyPillar = {
   id: string
   content: string
 }
 
+// Supabaseから取得する生のCommentデータ型（join前）
+type RawCommentSupabaseData = {
+  id: string
+  content: string
+  created_at: string
+  user_id: string
+  user_profile?: { id: string; name: string } | Array<{ id: string; name: string }> | null
+}
+
+// コンポーネント内で使用するCommentデータ型（正規化後）
 type Comment = {
   id: string
   content: string
   created_at: string
   user_id: string
-  user_profile?: {
-    id: string
-    name: string
-  }
+  user_profile?: { id: string; name: string } | null
+}
+
+// Supabaseから取得する生のPartyMemberデータ型（join前）
+type RawPartyMemberSupabaseData = {
+  user_profile: { id: string; name: string; avatar_url?: string | null } | Array<{ id: string; name: string; avatar_url?: string | null }> | null;
+}
+
+// コンポーネント内で使用するMemberデータ型（正規化後）
+type Member = {
+  id: string;
+  name: string;
+  avatar_url?: string | null;
 }
 
 export default function PartyDetailPage() {
   const params = useParams()
-  const id = params.id as string
+  const id = params.id as string // Next.jsの動的ルーティングからIDを取得
 
+  // 各状態変数の型を明確に指定
   const [party, setParty] = useState<Party | null>(null)
   const [policyPillars, setPolicyPillars] = useState<PolicyPillar[]>([])
   const [comments, setComments] = useState<Comment[]>([])
-  const [content, setContent] = useState('')
+  const [content, setContent] = useState<string>('')
   const [userId, setUserId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editContent, setEditContent] = useState('')
-  const [supportCount, setSupportCount] = useState(0)
-  const [isSupported, setIsSupported] = useState(false)
+  const [editContent, setEditContent] = useState<string>('')
+  const [supportCount, setSupportCount] = useState<number>(0)
+  const [isSupported, setIsSupported] = useState<boolean>(false)
   const [memberStatus, setMemberStatus] = useState<'none' | 'pending' | 'approved'>('none')
-  const [members, setMembers] = useState<{ id: string; name: string; avatar_url?: string }[]>([])
+  const [members, setMembers] = useState<Member[]>([])
 
+  // 政党データをフェッチするuseEffect
   useEffect(() => {
     const fetchParty = async () => {
+      // Supabaseからデータを取得
       const { data } = await supabase
         .from('party')
-        .select(`
+        .select<string, RawPartySupabaseData>(`
           user_id,
           name,
           slogan,
@@ -79,12 +108,13 @@ export default function PartyDetailPage() {
         `)
         .eq('id', id)
         .single()
+
       if (data) {
         const { party_tag, ...rest } = data
-        const normalized = {
+        const normalized: Party = {
           ...rest,
           tags: party_tag
-            ?.flatMap((pt: any) =>
+            ?.flatMap((pt: { tag: Tag }) =>
               Array.isArray(pt.tag) ? pt.tag : [pt.tag]
             )
             .filter((tag): tag is Tag => !!tag?.id && !!tag?.name),
@@ -95,36 +125,45 @@ export default function PartyDetailPage() {
     if (id) fetchParty()
   }, [id])
 
+  // 政策の柱データをフェッチするuseEffect
   useEffect(() => {
     const fetchPolicyPillars = async () => {
       const { data } = await supabase
         .from('policy_pillar')
-        .select('id, content')
+        .select<string, PolicyPillar>('id, content')
         .eq('party_id', id)
       if (data) setPolicyPillars(data)
     }
     if (id) fetchPolicyPillars()
   }, [id])
 
+  // コメントデータをフェッチする関数
   const fetchComments = async () => {
     const { data } = await supabase
       .from('comment')
-      .select('id, content, created_at, user_id, user_profile(id, name)')
+      .select<string, RawCommentSupabaseData>(`id, content, created_at, user_id, user_profile(id, name)`)
       .eq('party_id', id)
       .order('created_at', { ascending: false })
 
     if (data) {
       setComments(
-        data.map((comment: any) => ({
-          ...comment,
-          user_profile: Array.isArray(comment.user_profile)
-            ? comment.user_profile[0] // 配列なら1件目だけを使用
-            : comment.user_profile,
-        }))
+        data.map((comment: RawCommentSupabaseData) => {
+          let userProfile: { id: string; name: string } | null = null;
+          if (comment.user_profile) {
+            userProfile = Array.isArray(comment.user_profile)
+              ? comment.user_profile[0] || null
+              : comment.user_profile;
+          }
+          return {
+            ...comment,
+            user_profile: userProfile,
+          };
+        })
       )
     }
   }
 
+  // コメントフェッチをトリガーするuseEffect
   useEffect(() => {
     fetchComments()
   }, [id])
@@ -192,8 +231,6 @@ export default function PartyDetailPage() {
         console.error('参加メンバー取得エラー:', error)
         return
       }
-
-      type MemberProfile = { id: string; name: string; avatar_url?: string }
 
       const filtered = (data ?? [])
         .map((d) => Array.isArray(d.user_profile) ? d.user_profile[0] : d.user_profile)
