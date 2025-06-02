@@ -1,7 +1,7 @@
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: true, // ✅ ビルド時に ESLint 無視
+    ignoreDuringBuilds: true, 
   },
-};
+}
 
-export default nextConfig;
+module.exports = nextConfig
