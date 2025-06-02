@@ -63,7 +63,7 @@ type Like = {
 
 export default function MyPage() {
   const [, setOwnParties] = useState<Party[]>([])
-  const [_likedParties, setLikedParties] = useState<Party[]>([])
+  const [, setLikedParties] = useState<Party[]>([])
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [editingProfile, setEditingProfile] = useState(false)
   const [formProfile, setFormProfile] = useState<FormProfile>({
@@ -78,7 +78,7 @@ export default function MyPage() {
     interests: [],
   })
   
-  const [_error, setError] = useState<string | null>(null)
+  const [, setError] = useState<string | null>(null)
 
   const [editingPartyId, setEditingPartyId] = useState<string | null>(null)
   const [form, _setForm] = useState({
@@ -95,17 +95,17 @@ export default function MyPage() {
     activities: '',
     activities_url: '',
   })
-  const [_policyPillars, setPolicyPillars] = useState<{ [partyId: string]: PolicyPillar[] }>({})
+  const [, setPolicyPillars] = useState<{ [partyId: string]: PolicyPillar[] }>({})
   const [newPillar, setNewPillar] = useState<{ [partyId: string]: string }>({})
-  const [editingId, _setEditingId] = useState<string | null>(null)
+  const [editingId, ] = useState<string | null>(null)
 
   const [availableTags, setAvailableTags] = useState<{ id: string; name: string; category?: string | null }[]>([])
   const [selectedTagMap, setSelectedTagMap] = useState<{ [partyId: string]: string[] }>({})
-  const [_partyMembers, setPartyMembers] = useState<{ [partyId: string]: PartyMember[] }>({})
+  const [, setPartyMembers] = useState<{ [partyId: string]: PartyMember[] }>({})
 
-  const [_applicants, setApplicants] = useState<UserProfile[]>([])
+  const [, setApplicants] = useState<UserProfile[]>([])
   const [selectedPartyId, setSelectedPartyId] = useState<string | null>(null)
-  const [_showModal, setShowModal] = useState(false)
+  const [, setShowModal] = useState(false)
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
@@ -116,7 +116,7 @@ export default function MyPage() {
     }
   }
 
-  const [_confirmAction, _setConfirmAction] = useState<{
+  const [, ] = useState<{
     type: 'approve' | 'reject';
     userId: string;
   } | null>(null);
