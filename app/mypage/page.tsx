@@ -84,34 +84,13 @@ export default function MyPage() {
   
   const [, setError] = useState<string | null>(null)
 
-  const [editingPartyId, setEditingPartyId] = useState<string | null>(null)
-  const [form, ] = useState({
-    name: '',
-    slogan: '',
-    ideology: '',
-    leader_name: '',
-    founded_at: '',
-    activity_area: '',
-    location: '',
-    website: '',
-    contact_email: '',
-    logo_url: '',
-    activities: '',
-    activities_url: '',
-  })
   const [, setPolicyPillars] = useState<{ [partyId: string]: PolicyPillar[] }>({})
-  const [newPillar, setNewPillar] = useState<{ [partyId: string]: string }>({})
-  const [editingId, ] = useState<string | null>(null)
 
-  const [availableTags, setAvailableTags] = useState<{ id: string; name: string; category?: string | null }[]>([])
-  const [selectedTagMap, setSelectedTagMap] = useState<{ [partyId: string]: string[] }>({})
+  const [, setAvailableTags] = useState<{ id: string; name: string; category?: string | null }[]>([])
+  const [, setSelectedTagMap] = useState<{ [partyId: string]: string[] }>({})
   const [, setPartyMembers] = useState<{ [partyId: string]: PartyMember[] }>({})
 
-  const [, setApplicants] = useState<UserProfile[]>([])
-  const [selectedPartyId, setSelectedPartyId] = useState<string | null>(null)
-  const [, setShowModal] = useState(false)
-
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [successMessage, ] = useState<string | null>(null)
 
   const fetchPolicyPillars = async (partyId: string) => {
     const { data } = await supabase.from('policy_pillar').select('id, content').eq('party_id', partyId)
