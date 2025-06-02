@@ -62,7 +62,7 @@ type Like = {
 }
 
 export default function MyPage() {
-  const [_ownParties, setOwnParties] = useState<Party[]>([])
+  const [, setOwnParties] = useState<Party[]>([])
   const [_likedParties, setLikedParties] = useState<Party[]>([])
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [editingProfile, setEditingProfile] = useState(false)
