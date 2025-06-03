@@ -1,4 +1,3 @@
-// src/app/mypage/page.tsx
 'use client'
 
 import React from 'react'
@@ -162,9 +161,20 @@ export default function MyPage() {
       if (tagsData) setAvailableTags(tagsData)
 
       // ✅ 先に ownWithTags を定義
-      const ownWithTags = (own || []).map((p: any) => ({
-        ...p,
-        tags: p.party_tag?.map((pt: any) => pt.tag) || [],
+      const ownWithTags = ((own ?? []) as unknown as RawParty[]).map((p): Party => ({
+        id: p.id,
+        name: p.name,
+        slogan: p.slogan,
+        ideology: p.ideology,
+        leader_name: p.leader_name ?? null,
+        founded_at: p.founded_at ?? null,
+        activity_area: p.activity_area ?? null,
+        location: p.location ?? null,
+        website: p.website ?? null,
+        contact_email: p.contact_email ?? null,
+        logo_url: p.logo_url ?? null,
+        user_id: p.user_id,
+        tags: p.party_tag?.map((pt: { tag: Tag }) => pt.tag) || [],
       }))
       setOwnParties(ownWithTags)
 
