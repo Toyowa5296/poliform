@@ -13,17 +13,17 @@ type Party = {
   name: string
   slogan: string | null
   ideology: string
-  leader_name?: string | null
-  founded_at?: string | null
-  activity_area?: string | null
-  location?: string | null
-  website?: string | null
-  contact_email?: string | null
-  logo_url?: string | null
+  leader_name: string | null // undefined の可能性を排除
+  founded_at: string | null // undefined の可能性を排除
+  activity_area: string | null // undefined の可能性を排除
+  location: string | null // undefined の可能性を排除
+  website: string | null // undefined の可能性を排除
+  contact_email: string | null // undefined の可能性を排除
+  logo_url: string | null // undefined の可能性を排除
   user_id: string
-  tags?: Tag[]
-  activities?: string | null
-  activities_url?: string | null 
+  tags: Tag[] // Party では常に Tag[] とする
+  activities: string | null
+  activities_url: string | null
 }
 type UserProfile = {
   id: string
@@ -44,9 +44,9 @@ type PolicyPillar = {
 }
 
 type PartyMember = {
-  party_id: string;
-  status: string;
-};
+  party_id: string
+  status: string
+}
 
 type FormProfile = {
   name: string
@@ -60,13 +60,35 @@ type FormProfile = {
   interests?: string[]
 }
 
-type Like = { party: Party | null }
+// RawParty の型定義を再修正
+// Supabaseから取得される生のデータ構造を正確に反映
+type RawParty = {
+  id: string
+  name: string
+  slogan: string | null
+  ideology: string
+  leader_name: string | null
+  founded_at: string | null
+  activity_area: string | null
+  location: string | null
+  website: string | null
+  contact_email: string | null
+  logo_url: string | null
+  user_id: string
+  activities: string | null // any から string | null に変更
+  activities_url: string | null // any から string | null に変更
+  party_tag: { tag: Tag | null }[] | null // Supabaseの結合結果の型
+}
+
+// likes.select('party(*)') の結果の型
+type LikedPartyQueryResult = {
+  party: RawParty | null;
+}
 
 export default function MyPage() {
   const [ownParties, setOwnParties] = useState<Party[]>([])
   const [, setLikedParties] = useState<Party[]>([])
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
-  const [, setEditingProfile] = useState(false)
+  const [, setUserProfile] = useState<UserProfile | null>(null)
   const [, setError] = useState<string | null>(null)
 
   const [editingPartyId, setEditingPartyId] = useState<string | null>(null)
@@ -108,7 +130,7 @@ export default function MyPage() {
     }
   }
 
-  const [formProfile, setFormProfile] = useState<FormProfile>({
+  const [, setFormProfile] = useState<FormProfile>({
     name: '',
     bio: '',
     avatar_url: '',
@@ -175,15 +197,28 @@ export default function MyPage() {
           party_tag ( tag: tag_id (id, name) )
         `)
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false }) as { data: RawParty[] | null } // ここで型アサーション
 
       const { data: tagsData } = await supabase.from('tag').select('id, name, category')
       if (tagsData) setAvailableTags(tagsData)
 
       // ✅ 先に ownWithTags を定義
-      const ownWithTags = (own || []).map((p: any) => ({
-        ...p,
-        tags: p.party_tag?.map((pt: any) => pt.tag) || [],
+      const ownWithTags: Party[] = (own || []).map((p: RawParty) => ({ // p の型を RawParty に指定
+        id: p.id,
+        name: p.name,
+        slogan: p.slogan,
+        ideology: p.ideology,
+        leader_name: p.leader_name,
+        founded_at: p.founded_at,
+        activity_area: p.activity_area,
+        location: p.location,
+        website: p.website,
+        contact_email: p.contact_email,
+        logo_url: p.logo_url,
+        user_id: p.user_id,
+        activities: p.activities, // RawPartyから直接使用
+        activities_url: p.activities_url, // RawPartyから直接使用
+        tags: p.party_tag?.map((pt) => pt.tag).filter((tag): tag is Tag => tag !== null) || [], // pt の型推論は正しく行われる
       }))
       setOwnParties(ownWithTags)
       setLoading(false)
@@ -191,7 +226,8 @@ export default function MyPage() {
       // ✅ その後に tagMap を作る
       const tagMap: { [partyId: string]: string[] } = {}
       ownWithTags.forEach(p => {
-        tagMap[p.id] = p.tags?.map((t: Tag) => t.id) || []
+        // Party 型の tags プロパティは既に Tag[] となっているため、そのまま利用
+        tagMap[p.id] = p.tags?.map((t) => t.id) || []
       })
       setSelectedTagMap(tagMap)
 
@@ -199,14 +235,29 @@ export default function MyPage() {
 
       const { data: likesRaw } = await supabase
         .from('likes')
-        .select('party(*)')
-        .eq('user_id', user.id)
+        .select('party(*)') // Supabaseの結合クエリは party: RawParty の形式で返される
+        .eq('user_id', user.id) as { data: LikedPartyQueryResult[] | null } // ここで型アサーション
 
-      const likes = (likesRaw ?? []) as unknown as Like[]
-
-      const liked = likes
-        .map((item) => item.party)
-        .filter((p): p is Party => p !== null)
+      const liked = (likesRaw || [])
+        .map((item) => item.party) // item.party は RawParty | null の型を持つ
+        .filter((p): p is RawParty => p !== null) // null ではない RawParty だけをフィルター
+        .map((p: RawParty) => ({ // RawParty から Party に変換
+            id: p.id,
+            name: p.name,
+            slogan: p.slogan,
+            ideology: p.ideology,
+            leader_name: p.leader_name,
+            founded_at: p.founded_at,
+            activity_area: p.activity_area,
+            location: p.location,
+            website: p.website,
+            contact_email: p.contact_email,
+            logo_url: p.logo_url,
+            user_id: p.user_id,
+            activities: p.activities,
+            activities_url: p.activities_url,
+            tags: p.party_tag?.map((pt) => pt.tag).filter((tag): tag is Tag => tag !== null) || [],
+        }));
 
       setLikedParties(liked)
 
@@ -304,10 +355,14 @@ export default function MyPage() {
     }
 
     if (data) {
-      const profiles = data.map((entry) =>
-        Array.isArray(entry.user_profile) ? entry.user_profile[0] : entry.user_profile
-      )
-      setApplicants(profiles)
+      // user_profile が単一のオブジェクトまたは配列のどちらで来るか不明なため、両方を考慮
+      const profiles = data.map((entry: { user_profile: UserProfile | UserProfile[] | null }) => {
+        if (Array.isArray(entry.user_profile)) {
+          return entry.user_profile[0];
+        }
+        return entry.user_profile;
+      }).filter((profile): profile is UserProfile => profile !== null); // nullを除去
+      setApplicants(profiles);
     }
   }
 
@@ -335,7 +390,7 @@ export default function MyPage() {
         party_role_id: partyRoleId,
       })
       .match({ user_id: userId, party_id: selectedPartyId })
-      .select(); 
+      .select();
 
     if (updateError) {
       console.error('更新エラー:', updateError.message)
@@ -625,7 +680,7 @@ export default function MyPage() {
                   party={party}
                   tags={party.tags}
                   showSupportButton={false}
-                  pendingCount={pending.length} 
+                  pendingCount={pending.length}
                   onClickApplicants={handleClickApplicants}
                   onDelete={() => handleDelete(party.id)}
                   onEdit={() => {
@@ -734,7 +789,7 @@ export default function MyPage() {
                               }
                               setConfirmAction(null)
                             }}
-                            className={`px-5 py-2 rounded-md text-sm font-medium shadow transition 
+                            className={`px-5 py-2 rounded-md text-sm font-medium shadow transition
                               ${confirmAction.type === 'approve'
                                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                                 : 'bg-red-500 text-white hover:bg-red-600'}`}
