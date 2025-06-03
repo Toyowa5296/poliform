@@ -523,9 +523,9 @@ export default function PartyDetailPage() {
       </div>
 
         {/* タグ */}
-        {Array.isArray(party.party_tag) && party.party_tag.length > 0 && (
+        {Array.isArray(party.tags) && party.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {party.party_tag.map(({ tag }) => (
+            {party.tags.map((tag) => (
               <span key={tag.id} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
                 #{tag.name}
               </span>
