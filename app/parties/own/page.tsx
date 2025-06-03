@@ -64,10 +64,10 @@ type Like = { party: Party | null }
 
 export default function MyPage() {
   const [ownParties, setOwnParties] = useState<Party[]>([])
-  const [likedParties, setLikedParties] = useState<Party[]>([])
+  const [, setLikedParties] = useState<Party[]>([])
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
-  const [editingProfile, setEditingProfile] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [, setEditingProfile] = useState(false)
+  const [, setError] = useState<string | null>(null)
 
   const [editingPartyId, setEditingPartyId] = useState<string | null>(null)
   const [form, setForm] = useState({
@@ -235,32 +235,6 @@ export default function MyPage() {
 
     fetchData()
   }, [])
-
-  const handleSaveProfile = async () => {
-    if (!userProfile) return;
-
-    const { error } = await supabase
-      .from('user_profile')
-      .update({
-        name: formProfile.name,
-        bio: formProfile.bio,
-        avatar_url: formProfile.avatar_url,
-        birthplace: formProfile.birthplace,
-        x_url: formProfile.x_url,
-        website_url: formProfile.website_url,
-        birthday: formProfile.birthday === '' ? null : formProfile.birthday,
-        is_public: formProfile.is_public,
-        interests: formProfile.interests,
-      })
-      .eq('id', userProfile.id); 
-
-    if (!error) {
-      setUserProfile({ ...userProfile, ...formProfile });
-      setEditingProfile(false);
-    } else {
-      console.error('プロフィールの更新に失敗しました:', error?.message || error);
-    }
-  };
 
   const handleDelete = async (id: string) => {
     const ok = window.confirm('この政党を削除しますか？')
@@ -432,7 +406,6 @@ export default function MyPage() {
           {ownParties.map((party) => {
             const members = partyMembers[party.id] || []
             const pending = members.filter((m) => m.status === 'pending')
-            const approved = members.filter((m) => m.status === 'approved')
 
             return editingPartyId === party.id ? (
               <div key={party.id} className="border p-4 rounded bg-gray-50 shadow-sm space-y-6">
