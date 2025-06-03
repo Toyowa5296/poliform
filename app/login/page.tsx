@@ -26,7 +26,7 @@ export default function LoginPage() {
   const redirectTo =
     process.env.NODE_ENV === 'development'
       ? 'http://localhost:3000'
-      : 'https://poliform.vercel.app'
+      : 'https://poliform-ten.vercel.app'
 
   const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
