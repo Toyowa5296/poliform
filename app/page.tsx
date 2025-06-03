@@ -95,9 +95,12 @@ export default function Page() {
 
 
     // user_profile テーブルからデータを取得し、型を明示的に指定
-    const { data: profiles, error: profileErr } = await supabase
+    const { data: profilesRaw, error: profileErr } = await supabase
       .from('user_profile')
-      .select<UserProfile>('id, name') // select メソッドに UserProfile 型を適用
+      .select('id, name'); // <UserProfile> を削除
+
+    // profilesRaw を UserProfile[] 型にキャスト
+    const profiles: UserProfile[] | null = profilesRaw as unknown as UserProfile[] | null;
 
     if (partyErr || profileErr) {
       setError(partyErr?.message || profileErr?.message || 'エラーが発生しました')
